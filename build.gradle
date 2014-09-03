@@ -29,10 +29,15 @@ configurations {
     }
 }
 
+// TODO: Remove when we don't need to rely on snapshots. Relates to the "changing" definitions below
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 dependencies {
     compile (group: 'org.lwjgl.lwjgl', name: 'lwjgl_util_applet', version: LWJGL_VERSION)
-    compile (group: 'org.terasology.engine', name: 'engine', version: '+')
-    modules (group: 'org.terasology.modules', name: 'Core', version: '+')
+    compile (group: 'org.terasology.engine', name: 'engine', version: '+', changing: true)
+    modules (group: 'org.terasology.modules', name: 'Core', version: '+', changing: true)
 }
 
 jar {
@@ -53,7 +58,7 @@ task addModules () {
 
     // If the execution was supplied with an extraModules property then include those modules as well
     if (project.hasProperty('extraModules')) {
-        extraModules.split(',').each { String dependency ->
+        extraModules.tokenize(' ,').each { String dependency ->
             logger.lifecycle('Extra module: ' + dependency)
             dependencies  {
                 modules (group: 'org.terasology.modules', name: dependency, version: '+')
@@ -92,7 +97,7 @@ task copyLibs(type:Copy, dependsOn: addModules) {
         from configurations.runtime
     }
 
-    // Modules (just Core unless extraModules is passed in)
+    // Modules (which is now only Core as module bundling is done elsewhere - might change one day)
     into(subDirModules) {
         from configurations.modules
     }
